@@ -27,15 +27,28 @@ export default function Home() {
           <Link
             key={job.ID}
             href={`/jobs/${job.ID}/`}
-            className="group bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-xl hover:border-blue-500 transition-all duration-300 flex flex-col justify-between min-h-[200px]"
+            className="group relative flex flex-col bg-white border border-slate-200 rounded-3xl p-6 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/10 hover:border-blue-500/50 hover:-translate-y-1"
           >
-            <div>
-              <div className="flex justify-between items-start mb-4">
-                <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-widest border border-blue-100">
-                  {job.Category}
-                </span>
+            {/* Accent Tag */}
+            <div className="flex justify-between items-start mb-6">
+              <div className="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100">
+                {job.Category}
+              </div>
+              <div className="h-2 w-2 rounded-full bg-slate-200 group-hover:bg-blue-500 transition-colors"></div>
+            </div>
+
+            <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 mb-2 leading-tight transition-colors">
+              {job.Title}
+            </h3>
+
+            <p className="text-slate-500 font-medium text-sm mb-6">
+              <span className="text-blue-500 font-bold">@</span> {job.Company}
+            </p>
+
+            <div className="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between text-xs font-semibold text-slate-400">
+              <div className="flex items-center gap-1.5">
                 <svg
-                  className="w-5 h-5 text-slate-300 group-hover:text-blue-500 transition-colors"
+                  className="w-4 h-4 text-slate-300"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -44,32 +57,14 @@ export default function Home() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
-                    d="M14 5l7 7m0 0l-7 7m7-7H3"
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
                   />
                 </svg>
+                {job.Location}
               </div>
-
-              <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors mb-1">
-                {job.Title}
-              </h3>
-              <p className="text-slate-500 font-medium">{job.Company}</p>
-            </div>
-
-            <div className="mt-6 flex items-center text-sm text-slate-400">
-              <svg
-                className="w-4 h-4 mr-1.5 text-blue-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                />
-              </svg>
-              {job.Location}
+              <span className="text-blue-500 group-hover:translate-x-1 transition-transform">
+                Details →
+              </span>
             </div>
           </Link>
         ))}
