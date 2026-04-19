@@ -22,6 +22,7 @@ jobs:
       - run: npm run build
         env:
           SHEET_URL: ${{ secrets.SHEET_URL }}
+          NEXT_PUBLIC_SHEET_URL: ${{ secrets.NEXT_PUBLIC_SHEET_URL }}
           NEXT_TELEMETRY_DISABLED: 1
       - uses: actions/upload-pages-artifact@v3
         with:

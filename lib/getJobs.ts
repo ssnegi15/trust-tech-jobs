@@ -12,7 +12,7 @@ export interface Job {
 }
 
 export async function getJobs(): Promise<Job[]> {
-  const url = process.env.SHEET_URL;
+  const url = process.env.SHEET_URL || process.env.NEXT_PUBLIC_SHEET_URL;
 
   if (!url) {
     console.error("SHEET_URL is missing");
