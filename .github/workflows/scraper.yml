@@ -1,0 +1,25 @@
+name: Job Scraper
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # Runs every night at midnight
+  workflow_dispatch: # Allows manual run
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4 gspread oauth2client
+      - name: Run scraper
+        env:
+          # We store the credentials as a secret to keep them safe
+          GOOGLE_CREDS: ${{ secrets.GOOGLE_CREDS }}
+        run: |
+          echo $GOOGLE_CREDS > credentials.json
+          python scraper.py
