@@ -5,6 +5,7 @@ import time
 import os
 from bs4 import BeautifulSoup
 import datetime
+import re
 
 def clean_html(html_content):
     if not html_content:
@@ -86,26 +87,37 @@ def fetch_lever_jobs(board_token, company_name):
     url = f"https://api.lever.co/v0/postings/{board_token}"
     try:
         response = requests.get(url, timeout=15)
-        data = response.json()
+        # Lever returns a LIST directly: [ {job1}, {job2} ]
+        data = response.json() 
+        
+        if not isinstance(data, list):
+            print(f"Unexpected data format for {company_name}")
+            return []
+
         new_jobs = []
-        keywords = ["AI", "Privacy", "Ethics", "Policy", "Trust", "Safety", "Security"]
+        keywords = ["AI", "Privacy", ".NET", "React", "C#", "Frontend", "Software"]
         
         for job in data:
-            title = job.get('text')
+            # In Lever, title is 'text', not 'title'
+            title = job.get('text', 'Untitled Role')
+            
             if any(word.lower() in title.lower() for word in keywords):
-                # Lever usually provides 'description' (HTML) or 'descriptionPlain'
                 raw_description = job.get('description', "")
                 clean_description = clean_html(raw_description)
+                
+                # Extract Experience and Tags
+                exp, tech_tags = extract_metadata(clean_description)
                 
                 new_jobs.append([
                     str(job.get('id')), 
                     title, 
                     company_name, 
-                    "AI/Policy", 
+                    tech_tags, 
                     job.get('categories', {}).get('location', 'Remote'), 
                     job.get('hostedUrl'),
-                    clean_description, # REAL DESCRIPTION
-                    ""
+                    clean_description,
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    exp
                 ])
         return new_jobs
     except Exception as e:
