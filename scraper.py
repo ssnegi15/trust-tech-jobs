@@ -1,11 +1,12 @@
 import gspread
+import re
 from oauth2client.service_account import ServiceAccountCredentials
 import requests
 import time
 import os
 from bs4 import BeautifulSoup
 import datetime
-import re
+
 
 def clean_html(html_content):
     if not html_content:
@@ -24,18 +25,17 @@ def clean_html(html_content):
     return soup.get_text().strip()
 
 def extract_metadata(description):
-    # Search for "X+ years", "X years", or "X-Y years"
-    exp_match = re.search(r'(\d+\+?\s*(?:-|to)?\s*\d*\s*years?)', description, re.IGNORECASE)
+    # Improved regex for Indian experience formats (e.g., "3-5 years", "4+ years")
+    exp_match = re.search(r'(\d+\s*(?:-|to|\+)?\s*\d*\s*years?)', description, re.IGNORECASE)
     experience = exp_match.group(1) if exp_match else "Entry/Mid"
     
-    # Auto-tag based on keywords
+    # Tagging specifically for your filters
     tags = []
-    tech_stack = [".NET", "React", "Node", "Python", "AWS", "Azure", "SQL", "TypeScript", "C#"]
-    for tech in tech_stack:
-        if tech.lower() in description.lower():
-            tags.append(tech)
+    if ".net" in description.lower() or "c#" in description.lower(): tags.append(".NET")
+    if "react" in description.lower(): tags.append("React")
+    if "ai" in description.lower() or "ml" in description.lower(): tags.append("AI")
             
-    return experience, ",".join(tags[:3]) # Return top 3 tags
+    return experience, ",".join(tags) if tags else "Software"
 
 def get_sheet():
     print("DEBUG: Authenticating Google Sheets...")
@@ -85,27 +85,42 @@ def fetch_greenhouse_jobs(board_token, company_name):
 def fetch_lever_jobs(board_token, company_name):
     print(f"--- Fetching {company_name} (Lever) ---")
     url = f"https://api.lever.co/v0/postings/{board_token}"
+    
+    # Adding headers to prevent 403/Unexpected format errors
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    }
+
     try:
-        response = requests.get(url, timeout=15)
-        # Lever returns a LIST directly: [ {job1}, {job2} ]
-        data = response.json() 
+        response = requests.get(url, headers=headers, timeout=15)
         
-        if not isinstance(data, list):
-            print(f"Unexpected data format for {company_name}")
+        # If response is not 200, Lever might be blocking or token is wrong
+        if response.status_code != 200:
+            print(f"Skipping {company_name}: Received status {response.status_code}")
             return []
 
+        data = response.json() 
         new_jobs = []
-        keywords = ["AI", "Privacy", ".NET", "React", "C#", "Frontend", "Software"]
         
-        for job in data:
-            # In Lever, title is 'text', not 'title'
+        # Expanded keywords for NCR Tech
+        keywords = ["AI", ".NET", "React", "C#", "Frontend", "Software", "Full Stack", "Node"]
+        
+        # Ensure data is a list (Lever's standard format)
+        job_list = data if isinstance(data, list) else []
+
+        for job in job_list:
             title = job.get('text', 'Untitled Role')
+            location = job.get('categories', {}).get('location', 'Remote')
             
-            if any(word.lower() in title.lower() for word in keywords):
+            # Check if it matches technology OR region
+            is_tech = any(word.lower() in title.lower() for word in keywords)
+            is_ncr = any(loc.lower() in location.lower() for loc in ["noida", "gurgaon", "gurugram", "delhi", "ncr"])
+
+            if is_tech or is_ncr:
                 raw_description = job.get('description', "")
                 clean_description = clean_html(raw_description)
                 
-                # Extract Experience and Tags
+                # Use the metadata extractor we built
                 exp, tech_tags = extract_metadata(clean_description)
                 
                 new_jobs.append([
@@ -113,7 +128,7 @@ def fetch_lever_jobs(board_token, company_name):
                     title, 
                     company_name, 
                     tech_tags, 
-                    job.get('categories', {}).get('location', 'Remote'), 
+                    location, 
                     job.get('hostedUrl'),
                     clean_description,
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),

@@ -8,7 +8,6 @@ export interface Job {
   Location: string;
   Link: string;
   Description: string;
-  LogoURL: string;
   DateAdded: string; // New field for sorting
   Experience: string; // New field
 }
@@ -44,7 +43,6 @@ export async function getJobs(): Promise<Job[]> {
       Location: row.Location || row.location || "Remote",
       Link: row.Link || row.link || "#",
       Description: row.Description || row.description || "",
-      LogoURL: row.LogoURL || row.logourl || "",
       DateAdded: row.DateAdded || "2024-01-01", // Fallback for old rows
       Experience: row.Experience || row[8] || "Not specified",
     }));
