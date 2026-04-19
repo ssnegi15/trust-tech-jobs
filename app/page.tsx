@@ -113,7 +113,13 @@ export default function Home() {
                     d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
                   />
                 </svg>
-                {job.Location}
+                {(job.Location.toLowerCase().includes("noida") ||
+                  job.Location.toLowerCase().includes("gurgaon") ||
+                  job.Location.toLowerCase().includes("gurugram")) && (
+                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100">
+                    📍 NCR
+                  </span>
+                )}
               </div>
               <span className="text-blue-500 group-hover:translate-x-1 transition-transform">
                 Details →

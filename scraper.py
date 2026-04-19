@@ -102,19 +102,51 @@ def run_scraper():
     existing_ids = sheet.col_values(1)
     
     # Expanded list to ensure you see more companies
-    greenhouse_list = [
-        ("anthropic", "Anthropic"),
-        ("scaleai", "Scale AI"),
-        ("cohere", "Cohere"),
-        ("paloaltonetworks", "Palo Alto Networks"),
-        ("appliedintuition", "Applied Intuition")
-    ]
-    
-    lever_list = [
-        ("openai", "OpenAI"),
-        ("palantir", "Palantir"),
-        ("anduril", "Anduril")
-    ]
+    gh_targets = [
+    ("paytm", "Paytm"),               # React (Noida HQ)
+    ("ixigo", "Ixigo"),               # React/Frontend (Gurgaon)
+    ("makemytrip", "MakeMyTrip"),     # React (Gurgaon)
+    ("expedia", "Expedia Group"),     # React/.NET (Gurgaon office)
+    ("adobe", "Adobe"),               # React/C++ (Noida/Gurgaon)
+    ("airtel", "Airtel Digital"),     # React (Gurgaon)
+    ("paloaltonetworks", "Palo Alto Networks"), # Security (Gurgaon)
+    ("appliedintuition", "Applied Intuition"), # AI (Noida hub)
+    ("cisco", "Cisco Systems"),       # React/Network (Gurgaon)
+    ("vmware", "VMware"),             # React/Cloud (Gurgaon)
+    ("microsoft", "Microsoft India"), # .NET/AI (Multiple NCR locations)
+    ("google", "Google India"),       # AI/Policy (Multiple NCR locations)
+    ("amazon", "Amazon India"),       # AI/Cloud (Multiple NCR locations)
+    ("facebook", "Meta India"),        # AI/Policy (Multiple NCR locations)
+    ("oracle", "Oracle India"),        # React/Cloud (Gurgaon)
+    ("salesforce", "Salesforce India"), # React/Cloud (Gurgaon)
+    ("twosigma", "Two Sigma")   # AI/Quant (Gurgaon)
+
+    ]   
+
+# Lever: Enterprise .NET & High-Growth Startups in NCR
+    lever_targets = [
+    ("indiamart", "IndiaMART"),       # React/.NET (Noida)
+    ("stack-overflow", "Stack Overflow"), # .NET (Remote-friendly India)
+    ("fidelity", "Fidelity"),         # .NET (Massive Gurgaon presence)
+    ("cars24", "CARS24"),             # React (Gurgaon HQ)
+    ("urbancompany", "Urban Company"),# React (Gurgaon HQ)
+    ("shuttl", "Shuttl"),             # React (Gurgaon)
+    ("openai", "OpenAI"),             # AI
+    ("anduril", "Anduril")            # AI/Defense
+    ("rubrik", "Rubrik"),              # Cloud/Security (Gurgaon)
+    ("databricks", "Databricks"),        # AI/Cloud (Gurgaon)
+    ("hashicorp", "HashiCorp"),         # Cloud/Infrastructure (Gurgaon)
+    ("okta", "Okta"),                   # Security (Gurgaon)
+    ("splunk", "Splunk"),               # Security/Cloud (Gurgaon)
+    ("snowflake", "Snowflake"),         # Cloud/Data (Gurgaon)
+    ("cloudera", "Cloudera"),            # Cloud/Data (Gurgaon)
+    ("elastic", "Elastic"),               # Search/Cloud (Gurgaon)
+    ("confluent", "Confluent"),           # Cloud/Data (Gurgaon)
+    ("datadog", "Datadog"),               # Cloud/Monitoring (Gurgaon)
+    ("newrelic", "New Relic"),           # Cloud/Monitoring (Gurgaon)
+    ("splunk", "Splunk"),               # Security/Cloud (Gurgaon)
+    ("rubrik", "Rubrik"),              # Cloud/Security (Gurgaon)
+   ]
     
     total_added = 0
 

@@ -96,12 +96,19 @@ export default async function JobPage({
             </div>
 
             <div className="prose prose-slate max-w-none mb-10">
-              <h3 className="text-xl font-bold text-slate-900 mb-4">
+              <h3 className="text-xl font-bold text-slate-900 mb-4 border-b pb-2">
                 Job Description
               </h3>
-              <p className="text-slate-700 whitespace-pre-wrap leading-relaxed text-lg">
+              {/* Option A: If you cleaned it to plain text in Python */}
+              <div className="text-slate-700 whitespace-pre-wrap leading-relaxed text-lg">
                 {job.Description}
-              </p>
+              </div>
+
+              {/* Option B: If the scraper is still sending raw HTML tags, use this instead: */}
+              <div
+                className="text-slate-700 leading-relaxed text-lg"
+                dangerouslySetInnerHTML={{ __html: job.Description }}
+              />
             </div>
 
             <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-6">
