@@ -117,7 +117,7 @@ def run_scraper():
     existing_ids = sheet.col_values(1)
     
     # Expanded list to ensure you see more companies
-    gh_targets = [
+    greenhouse_list = [
     ("paytm", "Paytm"),               # React (Noida HQ)
     ("ixigo", "Ixigo"),               # React/Frontend (Gurgaon)
     ("makemytrip", "MakeMyTrip"),     # React (Gurgaon)
@@ -139,7 +139,7 @@ def run_scraper():
     ]   
 
 # Lever: Enterprise .NET & High-Growth Startups in NCR
-    lever_targets = [
+    lever_list = [
     ("indiamart", "IndiaMART"),       # React/.NET (Noida)
     ("stack-overflow", "Stack Overflow"), # .NET (Remote-friendly India)
     ("fidelity", "Fidelity"),         # .NET (Massive Gurgaon presence)
