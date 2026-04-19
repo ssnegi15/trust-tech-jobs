@@ -4,6 +4,7 @@ import requests
 import time
 import os
 from bs4 import BeautifulSoup
+import datetime
 
 def clean_html(html_content):
     if not html_content:
@@ -41,8 +42,8 @@ def fetch_greenhouse_jobs(board_token, company_name):
         data = response.json()
         jobs = data.get('jobs', [])
         new_jobs = []
-        keywords = ["AI", "Privacy", "Ethics", "Policy", "Trust", "Safety", "ESG", "Compliance", "Security", "Legal"]
-        
+        keywords = ["AI", "Privacy", "Ethics", "Policy", "Trust", "Safety", ".NET", "React", "C#", "Frontend", "Backend"]
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         for job in jobs:
             title = job.get('title')
             if any(word.lower() in title.lower() for word in keywords):
@@ -54,11 +55,11 @@ def fetch_greenhouse_jobs(board_token, company_name):
                     str(job.get('id')), 
                     title, 
                     company_name, 
-                    "AI/Policy", 
+                    "Tech", 
                     job.get('location', {}).get('name'), 
                     job.get('absolute_url'),
                     clean_description, # REAL DESCRIPTION
-                    "" 
+                    current_time # Added Date for sorting
                 ])
         return new_jobs
     except Exception as e:
