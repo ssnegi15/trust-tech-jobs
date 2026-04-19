@@ -35,7 +35,7 @@ export async function getJobs(): Promise<Job[]> {
     });
 
     const normalizedData = (parsed.data as any[]).map((row) => ({
-      ID: row.ID || row.id || row.Id || Math.random().toString(),
+      ID: String(row.ID || row.id || row.Id || "").trim(),
       Title: row.Title || row.title || "Unknown Title",
       Company: row.Company || row.company || "Unknown Company",
       Category: row.Category || row.category || "General",
