@@ -73,7 +73,7 @@ def fetch_greenhouse_jobs(board_token, company_name):
                     job.get('location', {}).get('name'), 
                     job.get('absolute_url'),
                     clean_description, # REAL DESCRIPTION
-                    current_time # Added Date for sorting
+                    current_time, # Added Date for sorting
                     exp
                 ])
         return new_jobs
