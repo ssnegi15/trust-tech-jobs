@@ -51,3 +51,9 @@ export async function getJobs(): Promise<Job[]> {
     return [];
   }
 }
+
+// Add this to your existing lib/getJobs.ts
+export async function getJobById(id: string): Promise<Job | null> {
+  const jobs = await getJobs();
+  return jobs.find((job) => job.ID === id) || null;
+}
