@@ -26,12 +26,51 @@ export default function Home() {
         {displayedJobs.map((job) => (
           <Link
             key={job.ID}
-            href={`/jobs/${job.ID}/`} // Added trailing slash to link
-            className="block p-6 bg-white border border-gray-200 rounded-xl hover:shadow-lg transition-all"
+            href={`/jobs/${job.ID}/`}
+            className="group bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-xl hover:border-blue-500 transition-all duration-300 flex flex-col justify-between min-h-[200px]"
           >
-            <h2 className="text-xl font-bold text-blue-600">{job.Title}</h2>
-            <p className="text-gray-700 font-medium">{job.Company}</p>
-            <p className="text-gray-500 text-sm mt-2">{job.Location}</p>
+            <div>
+              <div className="flex justify-between items-start mb-4">
+                <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-widest border border-blue-100">
+                  {job.Category}
+                </span>
+                <svg
+                  className="w-5 h-5 text-slate-300 group-hover:text-blue-500 transition-colors"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M14 5l7 7m0 0l-7 7m7-7H3"
+                  />
+                </svg>
+              </div>
+
+              <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors mb-1">
+                {job.Title}
+              </h3>
+              <p className="text-slate-500 font-medium">{job.Company}</p>
+            </div>
+
+            <div className="mt-6 flex items-center text-sm text-slate-400">
+              <svg
+                className="w-4 h-4 mr-1.5 text-blue-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                />
+              </svg>
+              {job.Location}
+            </div>
           </Link>
         ))}
       </div>
