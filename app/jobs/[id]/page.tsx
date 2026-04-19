@@ -11,6 +11,10 @@ export async function generateStaticParams() {
 
 export default async function JobPage({ params }: { params: { id: string } }) {
   const job = await getJobById(params.id);
+  console.error(
+    "Job Fetch Error:",
+    job ? null : `No job found with ID ${params.id}`,
+  );
 
   if (!job) {
     notFound();
