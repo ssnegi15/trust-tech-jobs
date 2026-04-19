@@ -22,6 +22,20 @@ def clean_html(html_content):
         
     return soup.get_text().strip()
 
+def extract_metadata(description):
+    # Search for "X+ years", "X years", or "X-Y years"
+    exp_match = re.search(r'(\d+\+?\s*(?:-|to)?\s*\d*\s*years?)', description, re.IGNORECASE)
+    experience = exp_match.group(1) if exp_match else "Entry/Mid"
+    
+    # Auto-tag based on keywords
+    tags = []
+    tech_stack = [".NET", "React", "Node", "Python", "AWS", "Azure", "SQL", "TypeScript", "C#"]
+    for tech in tech_stack:
+        if tech.lower() in description.lower():
+            tags.append(tech)
+            
+    return experience, ",".join(tags[:3]) # Return top 3 tags
+
 def get_sheet():
     print("DEBUG: Authenticating Google Sheets...")
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -50,16 +64,17 @@ def fetch_greenhouse_jobs(board_token, company_name):
                 # Greenhouse puts the description in 'content'
                 raw_description = job.get('content', "")
                 clean_description = clean_html(raw_description)
-                
+                exp, tech_tags = extract_metadata(clean_description)
                 new_jobs.append([
                     str(job.get('id')), 
                     title, 
                     company_name, 
-                    "Tech", 
+                    tech_tags, 
                     job.get('location', {}).get('name'), 
                     job.get('absolute_url'),
                     clean_description, # REAL DESCRIPTION
                     current_time # Added Date for sorting
+                    exp
                 ])
         return new_jobs
     except Exception as e:
@@ -132,7 +147,7 @@ def run_scraper():
     ("urbancompany", "Urban Company"),# React (Gurgaon HQ)
     ("shuttl", "Shuttl"),             # React (Gurgaon)
     ("openai", "OpenAI"),             # AI
-    ("anduril", "Anduril")            # AI/Defense
+    ("anduril", "Anduril"),            # AI/Defense
     ("rubrik", "Rubrik"),              # Cloud/Security (Gurgaon)
     ("databricks", "Databricks"),        # AI/Cloud (Gurgaon)
     ("hashicorp", "HashiCorp"),         # Cloud/Infrastructure (Gurgaon)

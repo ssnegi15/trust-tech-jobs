@@ -10,6 +10,7 @@ export interface Job {
   Description: string;
   LogoURL: string;
   DateAdded: string; // New field for sorting
+  Experience: string; // New field
 }
 
 export async function getJobs(): Promise<Job[]> {
@@ -45,6 +46,7 @@ export async function getJobs(): Promise<Job[]> {
       Description: row.Description || row.description || "",
       LogoURL: row.LogoURL || row.logourl || "",
       DateAdded: row.DateAdded || "2024-01-01", // Fallback for old rows
+      Experience: row.Experience || row[8] || "Not specified",
     }));
 
     return normalizedData as Job[];

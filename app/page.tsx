@@ -77,31 +77,13 @@ export default function Home() {
           <Link
             key={job.ID}
             href={`/jobs/${job.ID}/`}
-            className="group relative flex flex-col bg-white border border-slate-200 rounded-3xl p-6 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/10 hover:border-blue-500/50 hover:-translate-y-1"
+            className="group relative flex flex-col bg-white border border-slate-200 rounded-3xl p-6 transition-all duration-300 hover:shadow-2xl hover:border-blue-500/50 hover:-translate-y-1"
           >
-            <div className="flex justify-between items-start mb-6">
-              <div className="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100">
-                {job.Company}
-              </div>
-              <div className="text-[10px] font-bold text-slate-400">
-                {job.DateAdded
-                  ? new Date(job.DateAdded).toLocaleDateString()
-                  : "Recently"}
-              </div>
-            </div>
-
-            <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 mb-2 leading-tight transition-colors">
-              {job.Title}
-            </h3>
-
-            <p className="text-slate-500 font-medium text-sm mb-6">
-              <span className="text-blue-500 font-bold">@</span> {job.Company}
-            </p>
-
-            <div className="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between text-xs font-semibold text-slate-400">
-              <div className="flex items-center gap-1.5">
+            {/* Header: Experience & Location */}
+            <div className="flex justify-between items-start mb-4">
+              <span className="flex items-center gap-1.5 px-3 py-1 bg-slate-900 text-white text-[10px] font-bold rounded-full">
                 <svg
-                  className="w-4 h-4 text-slate-300"
+                  className="w-3 h-3"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -110,19 +92,53 @@ export default function Home() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                   />
                 </svg>
-                {(job.Location.toLowerCase().includes("noida") ||
-                  job.Location.toLowerCase().includes("gurgaon") ||
-                  job.Location.toLowerCase().includes("gurugram")) && (
-                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100">
-                    📍 NCR
-                  </span>
-                )}
+                {job.Experience || "Entry Level"}
+              </span>
+              <span className="text-[10px] font-bold text-slate-400">
+                {job.DateAdded
+                  ? new Date(job.DateAdded).toLocaleDateString()
+                  : "New"}
+              </span>
+            </div>
+
+            <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 mb-1 leading-tight">
+              {job.Title}
+            </h3>
+            <p className="text-blue-600 font-bold text-sm mb-4">
+              @{job.Company}
+            </p>
+
+            {/* Tech Tags Section */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              {job.Category.split(",").map((tag) => (
+                <span
+                  key={tag}
+                  className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-100"
+                >
+                  {tag.trim()}
+                </span>
+              ))}
+            </div>
+
+            {/* Footer: NCR specific highlighting */}
+            <div className="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between text-xs font-semibold text-slate-400">
+              <div className="flex items-center gap-1.5">
+                <span
+                  className={
+                    job.Location.toLowerCase().includes("noida") ||
+                    job.Location.toLowerCase().includes("gurgaon")
+                      ? "text-emerald-600 font-bold"
+                      : ""
+                  }
+                >
+                  {job.Location}
+                </span>
               </div>
               <span className="text-blue-500 group-hover:translate-x-1 transition-transform">
-                Details →
+                View Role →
               </span>
             </div>
           </Link>
