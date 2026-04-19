@@ -7,10 +7,18 @@ import os
 # 1. Setup Google Sheets Connection
 def get_sheet():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    # Locally uses credentials.json, on GitHub it will use the secret we set up
     creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
     client = gspread.authorize(creds)
-    return client.open("Job Board Data").worksheet("Jobs")
+    
+    spreadsheet = client.open("Job Board Data")
+    
+    try:
+        # Try to find the specific tab
+        return spreadsheet.worksheet("Jobs")
+    except gspread.exceptions.WorksheetNotFound:
+        # If "Jobs" isn't found, just grab the very first tab available
+        print("Worksheet 'Jobs' not found, using the first tab instead.")
+        return spreadsheet.get_worksheet(0)
 
 def fetch_greenhouse_jobs(board_token, company_name):
     print(f"--- Fetching: {company_name} ---")
