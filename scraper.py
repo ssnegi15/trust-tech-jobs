@@ -167,28 +167,16 @@ def run_scraper():
 
 # Lever: Enterprise .NET & High-Growth Startups in NCR
     lever_list = [
-    ("indiamart", "IndiaMART"),       # React/.NET (Noida)
-    ("stack-overflow", "Stack Overflow"), # .NET (Remote-friendly India)
-    ("fidelity", "Fidelity"),         # .NET (Massive Gurgaon presence)
-    ("cars24", "CARS24"),             # React (Gurgaon HQ)
-    ("urbancompany", "Urban Company"),# React (Gurgaon HQ)
-    ("shuttl", "Shuttl"),             # React (Gurgaon)
-    ("openai", "OpenAI"),             # AI
-    ("anduril", "Anduril"),            # AI/Defense
-    ("rubrik", "Rubrik"),              # Cloud/Security (Gurgaon)
-    ("databricks", "Databricks"),        # AI/Cloud (Gurgaon)
-    ("hashicorp", "HashiCorp"),         # Cloud/Infrastructure (Gurgaon)
-    ("okta", "Okta"),                   # Security (Gurgaon)
-    ("splunk", "Splunk"),               # Security/Cloud (Gurgaon)
-    ("snowflake", "Snowflake"),         # Cloud/Data (Gurgaon)
-    ("cloudera", "Cloudera"),            # Cloud/Data (Gurgaon)
-    ("elastic", "Elastic"),               # Search/Cloud (Gurgaon)
-    ("confluent", "Confluent"),           # Cloud/Data (Gurgaon)
-    ("datadog", "Datadog"),               # Cloud/Monitoring (Gurgaon)
-    ("newrelic", "New Relic"),           # Cloud/Monitoring (Gurgaon)
-    ("splunk", "Splunk"),               # Security/Cloud (Gurgaon)
-    ("rubrik", "Rubrik"),              # Cloud/Security (Gurgaon)
-   ]
+    ("openai", "OpenAI"),
+    ("anduril", "Anduril"),
+    ("palantir", "Palantir"),
+    ("fidelity", "Fidelity Investments"), 
+    ("urbancompany", "Urban Company"),
+    ("codenation", "CodeNation"), # High .NET/React in NCR
+    ("postman", "Postman"),
+    ("juspay", "Juspay"), # High React usage
+    ("blinkit", "Blinkit"), # Gurgaon based
+]
     
     total_added = 0
 

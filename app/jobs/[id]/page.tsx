@@ -4,8 +4,11 @@ import Link from "next/link";
 
 export async function generateStaticParams() {
   const jobs = await getJobs();
+
+  if (!jobs || jobs.length === 0) return [];
+
   return jobs.map((job) => ({
-    id: job.ID.toString(), // Ensure this is a string
+    id: String(job.ID), // MUST be 'id' because the folder is [id]
   }));
 }
 
@@ -99,10 +102,6 @@ export default async function JobPage({
               <h3 className="text-xl font-bold text-slate-900 mb-4 border-b pb-2">
                 Job Description
               </h3>
-              {/* Option A: If you cleaned it to plain text in Python */}
-              <div className="text-slate-700 whitespace-pre-wrap leading-relaxed text-lg">
-                {job.Description}
-              </div>
 
               {/* Option B: If the scraper is still sending raw HTML tags, use this instead: */}
               <div
