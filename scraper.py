@@ -1,52 +1,71 @@
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import requests
-from bs4 import BeautifulSoup
 import time
+import os
 
 # 1. Setup Google Sheets Connection
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
-client = gspread.authorize(creds)
-# Replace with your actual Google Sheet name
-sheet = client.open("Job Board Data").worksheet("Jobs")
+def get_sheet():
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    # Locally uses credentials.json, on GitHub it will use the secret we set up
+    creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+    client = gspread.authorize(creds)
+    return client.open("Job Board Data").worksheet("Jobs")
 
 def fetch_greenhouse_jobs(board_token, company_name):
-    print(f"Fetching jobs for {company_name}...")
+    print(f"--- Fetching: {company_name} ---")
     url = f"https://boards-api.greenhouse.io/v1/boards/{board_token}/jobs"
-    response = requests.get(url).json()
-    
-    new_jobs = []
-    keywords = ["AI", "Privacy", "Trust", "Ethics", "Policy", "ESG"]
-    
-    for job in response.get('jobs', []):
-        title = job.get('title')
-        # Filter for "Trusted Tech" roles
-        if any(word.lower() in title.lower() for word in keywords):
-            new_jobs.append([
-                job.get('id'),        # ID
-                title,                 # Title
-                company_name,          # Company
-                "AI/Privacy",          # Category (Manual/Logic)
-                job.get('location', {}).get('name'), # Location
-                job.get('absolute_url'), # Link
-                "Scraped Role",        # Description
-                ""                     # LogoURL
-            ])
-    return new_jobs
+    try:
+        response = requests.get(url, timeout=10)
+        data = response.json()
+        
+        new_jobs = []
+        # Expanded keywords for "Trust Tech"
+        keywords = ["AI", "Privacy", "Ethics", "Policy", "Trust", "Safety", "ESG", "Compliance"]
+        
+        for job in data.get('jobs', []):
+            title = job.get('title')
+            if any(word.lower() in title.lower() for word in keywords):
+                new_jobs.append([
+                    str(job.get('id')), 
+                    title, 
+                    company_name, 
+                    "AI/Policy", 
+                    job.get('location', {}).get('name'), 
+                    job.get('absolute_url'),
+                    f"Trust Tech role at {company_name}", 
+                    "" # LogoURL placeholder
+                ])
+        return new_jobs
+    except Exception as e:
+        print(f"Error fetching {company_name}: {e}")
+        return []
 
 def run_scraper():
-    # Example: Anthropic uses Greenhouse
-    anthropic_jobs = fetch_greenhouse_jobs("anthropic", "Anthropic")
+    sheet = get_sheet()
     
-    # Get existing IDs from Sheet to avoid duplicates
+    # List of high-value targets (Greenhouse tokens)
+    companies = [
+        ("anthropic", "Anthropic"),
+        ("openai", "OpenAI"),
+        ("mistralai", "Mistral AI"),
+        ("scaleai", "Scale AI"),
+        ("perplexity", "Perplexity"),
+        ("cohere", "Cohere"),
+        ("paloaltonetworks", "Palo Alto Networks")
+    ]
+    
     existing_ids = sheet.col_values(1)
     
-    for job in anthropic_jobs:
-        if str(job[0]) not in existing_ids:
-            sheet.append_row(job)
-            print(f"Added: {job[1]}")
-            time.sleep(1) # Avoid rate limits
+    for token, name in companies:
+        jobs = fetch_greenhouse_jobs(token, name)
+        for job in jobs:
+            if job[0] not in existing_ids:
+                sheet.append_row(job)
+                print(f"Added: {job[1]} at {name}")
+                time.sleep(1) # Be nice to the API
+            else:
+                print(f"Skipped (Duplicate): {job[1]}")
 
 if __name__ == "__main__":
     run_scraper()
