@@ -3,204 +3,119 @@ import re
 from oauth2client.service_account import ServiceAccountCredentials
 import requests
 import time
-import os
 from bs4 import BeautifulSoup
 import datetime
 
-
 def clean_html(html_content):
+    """Keeps HTML tags so React can render them, but cleans up scripts."""
     if not html_content:
-        return "No description available."
-    # Use BeautifulSoup to convert HTML tags into plain text with line breaks
+        return ""
     soup = BeautifulSoup(html_content, "html.parser")
-    # This replaces </p>, <br>, and </li> with actual newlines
-    for br in soup.find_all("br"):
-        br.replace_with("\n")
-    for p in soup.find_all("p"):
-        p.append("\n")
-    for li in soup.find_all("li"):
-        li.insert(0, "• ")
-        li.append("\n")
-        
-    return soup.get_text().strip()
+    for script_or_style in soup(["script", "style"]):
+        script_or_style.decompose()
+    # Return as string so dangerouslySetInnerHTML works
+    return str(soup)
 
 def extract_metadata(description):
-    # Improved regex for Indian experience formats (e.g., "3-5 years", "4+ years")
-    exp_match = re.search(r'(\d+\s*(?:-|to|\+)?\s*\d*\s*years?)', description, re.IGNORECASE)
-    experience = exp_match.group(1) if exp_match else "Entry/Mid"
+    desc_lower = description.lower()
     
-    # Tagging specifically for your filters
+    # Experience Logic
+    exp_match = re.search(r'(\d+\s*(?:-|to|\+)?\s*\d*\s*years?)', desc_lower)
+    experience = exp_match.group(1).upper() if exp_match else "Mid Level"
+    
     tags = []
-    if ".net" in description.lower() or "c#" in description.lower(): tags.append(".NET")
-    if "react" in description.lower(): tags.append("React")
-    if "ai" in description.lower() or "ml" in description.lower(): tags.append("AI")
+    # Tech Stack Detection
+    if any(x in desc_lower for x in [".net", "c#", "asp.net", "dotnet", "entity framework"]):
+        tags.append(".NET")
+    if any(x in desc_lower for x in ["react", "next.js", "typescript", "frontend"]):
+        tags.append("React")
+    if any(x in desc_lower for x in ["ai", "ml", "llm", "openai", "nlp", "machine learning"]):
+        tags.append("AI")
+    if any(x in desc_lower for x in ["azure", "aws", "gcp"]):
+        tags.append("Cloud")
             
     return experience, ",".join(tags) if tags else "Software"
 
 def get_sheet():
-    print("DEBUG: Authenticating Google Sheets...")
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
     client = gspread.authorize(creds)
     spreadsheet = client.open("Job Board Data")
-    try:
-        return spreadsheet.worksheet("Jobs")
-    except:
-        return spreadsheet.get_worksheet(0)
+    return spreadsheet.get_worksheet(0)
 
-def fetch_greenhouse_jobs(board_token, company_name):
-    print(f"--- Fetching {company_name} (Greenhouse) ---")
-    # Added ?content=true to get the full job description body
-    url = f"https://boards-api.greenhouse.io/v1/boards/{board_token}/jobs?content=true"
-    try:
-        response = requests.get(url, timeout=15)
-        data = response.json()
-        jobs = data.get('jobs', [])
-        new_jobs = []
-        keywords = ["AI", "Privacy", "Ethics", "Policy", "Trust", "Safety", ".NET", "React", "C#", "Frontend", "Backend"]
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        for job in jobs:
-            title = job.get('title')
-            if any(word.lower() in title.lower() for word in keywords):
-                # Greenhouse puts the description in 'content'
-                raw_description = job.get('content', "")
-                clean_description = clean_html(raw_description)
-                exp, tech_tags = extract_metadata(clean_description)
-                new_jobs.append([
-                    str(job.get('id')), 
-                    title, 
-                    company_name, 
-                    tech_tags, 
-                    job.get('location', {}).get('name'), 
-                    job.get('absolute_url'),
-                    clean_description, # REAL DESCRIPTION
-                    current_time, # Added Date for sorting
-                    exp
-                ])
-        return new_jobs
-    except Exception as e:
-        print(f"Error {company_name}: {e}")
-        return []
+# --- COMPANY LISTS ---
 
-def fetch_lever_jobs(board_token, company_name):
-    print(f"--- Fetching {company_name} (Lever) ---")
-    url = f"https://api.lever.co/v0/postings/{board_token}"
-    
-    # Adding headers to prevent 403/Unexpected format errors
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-    }
-
-    try:
-        response = requests.get(url, headers=headers, timeout=15)
-        
-        # If response is not 200, Lever might be blocking or token is wrong
-        if response.status_code != 200:
-            print(f"Skipping {company_name}: Received status {response.status_code}")
-            return []
-
-        data = response.json() 
-        new_jobs = []
-        
-        # Expanded keywords for NCR Tech
-        keywords = ["AI", ".NET", "React", "C#", "Frontend", "Software", "Full Stack", "Node"]
-        
-        # Ensure data is a list (Lever's standard format)
-        job_list = data if isinstance(data, list) else []
-
-        for job in job_list:
-            title = job.get('text', 'Untitled Role')
-            location = job.get('categories', {}).get('location', 'Remote')
-            
-            # Check if it matches technology OR region
-            is_tech = any(word.lower() in title.lower() for word in keywords)
-            is_ncr = any(loc.lower() in location.lower() for loc in ["noida", "gurgaon", "gurugram", "delhi", "ncr"])
-
-            if is_tech or is_ncr:
-                raw_description = job.get('description', "")
-                clean_description = clean_html(raw_description)
-                
-                # Use the metadata extractor we built
-                exp, tech_tags = extract_metadata(clean_description)
-                
-                new_jobs.append([
-                    str(job.get('id')), 
-                    title, 
-                    company_name, 
-                    tech_tags, 
-                    location, 
-                    job.get('hostedUrl'),
-                    clean_description,
-                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    exp
-                ])
-        return new_jobs
-    except Exception as e:
-        print(f"Error {company_name}: {e}")
-        return []
-
-def run_scraper():
-    sheet = get_sheet()
-    existing_ids = sheet.col_values(1)
-    
-    # Expanded list to ensure you see more companies
-    greenhouse_list = [
-    ("paytm", "Paytm"),               # React (Noida HQ)
-    ("ixigo", "Ixigo"),               # React/Frontend (Gurgaon)
-    ("makemytrip", "MakeMyTrip"),     # React (Gurgaon)
-    ("expedia", "Expedia Group"),     # React/.NET (Gurgaon office)
-    ("adobe", "Adobe"),               # React/C++ (Noida/Gurgaon)
-    ("airtel", "Airtel Digital"),     # React (Gurgaon)
-    ("paloaltonetworks", "Palo Alto Networks"), # Security (Gurgaon)
-    ("appliedintuition", "Applied Intuition"), # AI (Noida hub)
-    ("cisco", "Cisco Systems"),       # React/Network (Gurgaon)
-    ("vmware", "VMware"),             # React/Cloud (Gurgaon)
-    ("microsoft", "Microsoft India"), # .NET/AI (Multiple NCR locations)
-    ("google", "Google India"),       # AI/Policy (Multiple NCR locations)
-    ("amazon", "Amazon India"),       # AI/Cloud (Multiple NCR locations)
-    ("facebook", "Meta India"),        # AI/Policy (Multiple NCR locations)
-    ("oracle", "Oracle India"),        # React/Cloud (Gurgaon)
-    ("salesforce", "Salesforce India"), # React/Cloud (Gurgaon)
-    ("twosigma", "Two Sigma")   # AI/Quant (Gurgaon)
-
-    ]   
-
-# Lever: Enterprise .NET & High-Growth Startups in NCR
-    lever_list = [
-    ("openai", "OpenAI"),
-    ("anduril", "Anduril"),
-    ("palantir", "Palantir"),
-    ("fidelity", "Fidelity Investments"), 
-    ("urbancompany", "Urban Company"),
-    ("codenation", "CodeNation"), # High .NET/React in NCR
-    ("postman", "Postman"),
-    ("juspay", "Juspay"), # High React usage
-    ("blinkit", "Blinkit"), # Gurgaon based
+greenhouse_list = [
+    # Big Tech / AI
+    ("microsoft", "Microsoft"), ("adobe", "Adobe"), ("google", "Google"), ("nvidia", "Nvidia"),
+    ("openai", "OpenAI"), ("appliedintuition", "Applied Intuition"), ("paloaltonetworks", "Palo Alto Networks"),
+    # NCR / India Tech Hubs
+    ("paytm", "Paytm"), ("ixigo", "Ixigo"), ("makemytrip", "MakeMyTrip"), ("airtel", "Airtel"),
+    ("zomato", "Zomato"), ("blinkit", "Blinkit"), ("policybazaar", "PolicyBazaar"), 
+    # Enterprise .NET/React
+    ("chegg", "Chegg"), ("metlife", "MetLife"), ("optum", "Optum"), ("expedia", "Expedia"),
+    ("salesforce", "Salesforce"), ("servicenow", "ServiceNow"), ("atlassian", "Atlassian"),
+    ("twilio", "Twilio"), ("hubspot", "HubSpot"), ("stripe", "Stripe"), ("cloudera", "Cloudera")
 ]
-    
+
+lever_list = [
+    # AI & Modern Stack
+    ("palantir", "Palantir"), ("anduril", "Anduril"), ("anthropic", "Anthropic"), ("cohere", "Cohere"),
+    ("fidelity", "Fidelity"), ("docker", "Docker"), ("figma", "Figma"), ("notion", "Notion"),
+    # NCR / Growth
+    ("urbancompany", "Urban Company"), ("juspay", "Juspay"), ("postman", "Postman"), 
+    ("razorpay", "Razorpay"), ("cred", "CRED"), ("meesho", "Meesho"), ("groww", "Groww"),
+    # Engineering Heavy
+    ("codenation", "CodeNation"), ("thoughtworks", "Thoughtworks"), ("nagaro", "Nagarro"),
+    ("bolt", "Bolt"), ("clutter", "Clutter"), ("6sense", "6sense"), ("asana", "Asana"),
+    ("benchling", "Benchling"), ("datadog", "DataDog"), ("github", "GitHub")
+]
+
+# --- SCRAPER LOGIC ---
+
+def fetch_and_save(sheet, existing_ids):
+    current_time = datetime.datetime.now().strftime("%Y-%m-%d")
     total_added = 0
-
+    
+    # Process Greenhouse
     for token, name in greenhouse_list:
-        jobs = fetch_greenhouse_jobs(token, name)
-        for job in jobs:
-            if job[0] not in existing_ids:
-                sheet.append_row(job)
-                existing_ids.append(job[0])
-                total_added += 1
-                print(f"Added: {job[1]} at {name}")
-                time.sleep(1)
+        url = f"https://boards-api.greenhouse.io/v1/boards/{token}/jobs?content=true"
+        try:
+            res = requests.get(url, timeout=10).json()
+            for job in res.get('jobs', []):
+                jid = str(job.get('id'))
+                if jid not in existing_ids:
+                    desc = clean_html(job.get('content', ""))
+                    exp, tags = extract_metadata(desc)
+                    row = [jid, job.get('title'), name, tags, job.get('location', {}).get('name'), job.get('absolute_url'), desc, current_time, exp]
+                    sheet.append_row(row)
+                    existing_ids.append(jid)
+                    total_added += 1
+                    print(f"Added {job.get('title')} @ {name}")
+                    time.sleep(0.5)
+        except: continue
 
+    # Process Lever
     for token, name in lever_list:
-        jobs = fetch_lever_jobs(token, name)
-        for job in jobs:
-            if job[0] not in existing_ids:
-                sheet.append_row(job)
-                existing_ids.append(job[0])
-                total_added += 1
-                print(f"Added: {job[1]} at {name}")
-                time.sleep(1)
+        url = f"https://api.lever.co/v0/postings/{token}"
+        try:
+            res = requests.get(url, timeout=10).json()
+            for job in res:
+                jid = str(job.get('id'))
+                if jid not in existing_ids:
+                    desc = clean_html(job.get('description', ""))
+                    exp, tags = extract_metadata(desc)
+                    row = [jid, job.get('text'), name, tags, job.get('categories', {}).get('location'), job.get('hostedUrl'), desc, current_time, exp]
+                    sheet.append_row(row)
+                    existing_ids.append(jid)
+                    total_added += 1
+                    print(f"Added {job.get('text')} @ {name}")
+                    time.sleep(0.5)
+        except: continue
 
-    print(f"Finished. Added {total_added} new jobs.")
+    print(f"Done! Added {total_added} jobs.")
 
 if __name__ == "__main__":
-    run_scraper()
+    sheet = get_sheet()
+    existing_ids = sheet.col_values(1)
+    fetch_and_save(sheet, existing_ids)
